@@ -1,38 +1,37 @@
 import sys
-from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton, QLabel, QVBoxLayout, QWidget
+from PyQt5.QtWidgets import QApplication, QMainWindow, QHBoxLayout, QWidget
+from ui.common.sidebar import Sidebar
+from pages.file_convert.view import FileConvertPage
 
-class MyApp(QMainWindow):
+class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.initUI()
 
     def initUI(self):
-        self.setWindowTitle("PyQt5 Executable Example")
-        self.setGeometry(100, 100, 400, 300)
+        self.setWindowTitle('Main Window')
+        self.setGeometry(100, 100, 800, 600)
+        
+        centralWidget = QWidget(self)
+        self.setCentralWidget(centralWidget)
+        
+        layout = QHBoxLayout()
+        
+        self.sidebar = Sidebar(self)
+        self.fileConvertPage = FileConvertPage(self)
+        
+        layout.addWidget(self.sidebar)
+        layout.addWidget(self.fileConvertPage)
+        
+        centralWidget.setLayout(layout)
 
-        # 중앙 위젯 설정
-        central_widget = QWidget()
-        self.setCentralWidget(central_widget)
+    def change_page(self, page_name):
+        if page_name == 'file_convert':
+            self.fileConvertPage.show()
+        # 다른 페이지 전환 로직 추가 가능
 
-        layout = QVBoxLayout()
-
-        # 라벨
-        self.label = QLabel("Hello, PyQt5!", self)
-        layout.addWidget(self.label)
-
-        # 버튼
-        btn = QPushButton("Click Me", self)
-        btn.clicked.connect(self.on_click)
-        layout.addWidget(btn)
-
-        # 레이아웃 적용
-        central_widget.setLayout(layout)
-
-    def on_click(self):
-        self.label.setText("Button Clicked!")
-
-if __name__ == "__main__":
+if __name__ == '__main__':
     app = QApplication(sys.argv)
-    mainWin = MyApp()
-    mainWin.show()
+    mainWindow = MainWindow()
+    mainWindow.show()
     sys.exit(app.exec_())
