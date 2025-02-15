@@ -1,10 +1,11 @@
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QRadioButton, QButtonGroup
+from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QRadioButton, QButtonGroup, QPushButton
 from ui.specified.file_convert.upload_file import UploadFileWidget
 from ui.specified.file_convert.show_file_data import ShowFileDataWidget
 from ui.common.popup import ErrorPopup
 from errors.errors import ErrorCodes
 from model.store import VideoStore
 import cv2
+import math
 
 class FileConvertPage(QWidget):
     def __init__(self, parent=None):
@@ -34,6 +35,13 @@ class FileConvertPage(QWidget):
         self.ratioInputLayout.addWidget(self.heightLabel)
         self.ratioInputLayout.addWidget(self.heightInput)
         
+        self.multiplierLabel = QLabel('배수: ', self)
+        self.multiplierInput = QLineEdit(self)
+        self.multiplierInput.textChanged.connect(self.updateDimensions)
+        
+        self.ratioInputLayout.addWidget(self.multiplierLabel)
+        self.ratioInputLayout.addWidget(self.multiplierInput)
+        
         # 드론 타입 선택 토글 추가
         self.droneTypeLayout = QHBoxLayout()
         self.droneTypeLabel = QLabel('드론 타입: ', self)
@@ -54,10 +62,17 @@ class FileConvertPage(QWidget):
         self.droneTypeLayout.addWidget(self.ur25RadioButton)
         self.droneTypeLayout.addWidget(self.ur36RadioButton)
         
+        self.droneTypeGroup.buttonClicked.connect(self.updateConvertButtonState)
+        
+        self.convertButton = QPushButton('변환하기', self)
+        self.convertButton.setEnabled(False)
+        self.convertButton.clicked.connect(self.convertVideo)
+        
         layout.addWidget(self.uploadWidget)
         layout.addWidget(self.showFileDataWidget)
         layout.addLayout(self.ratioInputLayout)
         layout.addLayout(self.droneTypeLayout)
+        layout.addWidget(self.convertButton)
         self.setLayout(layout)
 
     def checkVideoRatio(self):
@@ -71,6 +86,15 @@ class FileConvertPage(QWidget):
             self.showErrorPopup(ErrorCodes.INVALID_FILE_FORMAT)
             return
         
+        def gcd(a, b):
+            while b:
+                a, b = b, a % b
+            return a
+
+        def simplify_ratio(width, height):
+            common_divisor = gcd(width, height)
+            return int(width / common_divisor), int(height / common_divisor)
+
         width = cap.get(cv2.CAP_PROP_FRAME_WIDTH)
         height = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
         frame_count = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
@@ -79,13 +103,18 @@ class FileConvertPage(QWidget):
         
         ratio = width / height
         if ratio in [5/4, 16/9, 16/10]:
-            ratio_str = f'{int(width)}:{int(height)}'
+            simplified_width, simplified_height = simplify_ratio(int(width), int(height))
+            ratio_str = f'{simplified_width}:{simplified_height}'
+            self.simplified_ratio = (simplified_width, simplified_height)
             self.ratio = (int(width), int(height))
         elif height / width in [5/4, 16/9, 16/10]:
-            ratio_str = f'{int(height)}:{int(width)}'
+            simplified_width, simplified_height = simplify_ratio(int(height), int(width))
+            ratio_str = f'{simplified_width}:{simplified_height}'
+            self.simplified_ratio = (simplified_width, simplified_height)
             self.ratio = (int(height), int(width))
         else:
             ratio_str = '지원되지 않는 형식'
+            self.simplified_ratio = None
             self.ratio = None
         
         print(f'Video ratio: {ratio_str}')
@@ -99,21 +128,31 @@ class FileConvertPage(QWidget):
         self.videoStore.set_video_file(file_path)
         
         # Update input fields
-        if self.ratio:
-            self.widthInput.setText(str(self.ratio[0]))
-            self.heightInput.setText(str(self.ratio[1]))
+        if self.simplified_ratio:
+            self.widthInput.setText(str(self.simplified_ratio[0]))
+            self.heightInput.setText(str(self.simplified_ratio[1]))
+        
+        # Enable convert button if file is valid and drone type is selected
+        self.updateConvertButtonState()
 
     def updateDimensions(self):
-        if self.ratio:
+        if self.simplified_ratio:
             try:
-                width_multiplier = int(self.widthInput.text()) // self.ratio[0]
-                height_multiplier = int(self.heightInput.text()) // self.ratio[1]
-                
-                if width_multiplier == height_multiplier:
-                    self.widthInput.setText(str(self.ratio[0] * width_multiplier))
-                    self.heightInput.setText(str(self.ratio[1] * height_multiplier))
+                multiplier = int(self.multiplierInput.text())
+                self.widthInput.setText(str(self.simplified_ratio[0] * multiplier))
+                self.heightInput.setText(str(self.simplified_ratio[1] * multiplier))
             except ValueError:
                 pass
+
+    def updateConvertButtonState(self):
+        if self.ratio and self.droneTypeGroup.checkedButton():
+            self.convertButton.setEnabled(True)
+        else:
+            self.convertButton.setEnabled(False)
+
+    def convertVideo(self):
+        print("변환합니다")
+        # 실제로 영상을 픽셀로 변환하는 함수가 여기에 들어갈 예정입니다.
 
     def showErrorPopup(self, error_code):
         popup = ErrorPopup(error_code, self)
