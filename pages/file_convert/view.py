@@ -1,4 +1,5 @@
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QRadioButton, QButtonGroup, QPushButton
+from PyQt5.QtCore import pyqtSignal
 from ui.specified.file_convert.upload_file import UploadFileWidget
 from ui.specified.file_convert.show_file_data import ShowFileDataWidget
 from ui.common.popup import ErrorPopup
@@ -8,10 +9,13 @@ import cv2
 import math
 
 class FileConvertPage(QWidget):
-    def __init__(self, parent=None):
+    video_uploaded = pyqtSignal()
+    video_converted = pyqtSignal()
+
+    def __init__(self, parent=None, videoStore=None):
         super().__init__(parent)
         self.initUI()
-        self.videoStore = VideoStore()
+        self.videoStore = videoStore or VideoStore()
 
     def initUI(self):
         layout = QVBoxLayout()
@@ -125,15 +129,20 @@ class FileConvertPage(QWidget):
         
         # Store video data
         self.videoStore.set_video_data(ratio_str, frame_count, fps)
+        print("비디오 데이터 저장 완료", ratio_str, frame_count, fps)
+        
         self.videoStore.set_video_file(file_path)
         
         # Update input fields
         if self.simplified_ratio:
             self.widthInput.setText(str(self.simplified_ratio[0]))
             self.heightInput.setText(str(self.simplified_ratio[1]))
-        
+
         # Enable convert button if file is valid and drone type is selected
         self.updateConvertButtonState()
+        
+        # Emit video_uploaded signal
+        self.video_uploaded.emit()
 
     def updateDimensions(self):
         if self.simplified_ratio:
@@ -141,6 +150,14 @@ class FileConvertPage(QWidget):
                 multiplier = int(self.multiplierInput.text())
                 self.widthInput.setText(str(self.simplified_ratio[0] * multiplier))
                 self.heightInput.setText(str(self.simplified_ratio[1] * multiplier))
+                self.videoStore.set_multiplier(multiplier)  # multiplier 값을 저장
+                # Update video data with multiplier
+                self.videoStore.set_video_data(
+                    f'{self.simplified_ratio[0] * multiplier}:{self.simplified_ratio[1] * multiplier}',
+                    self.videoStore.get_video_data()['frame_count'],
+                    self.videoStore.get_video_data()['fps'],
+                    multiplier
+                )
             except ValueError:
                 pass
 
@@ -153,6 +170,9 @@ class FileConvertPage(QWidget):
     def convertVideo(self):
         print("변환합니다")
         # 실제로 영상을 픽셀로 변환하는 함수가 여기에 들어갈 예정입니다.
+        
+        # Emit video_converted signal
+        self.video_converted.emit()
 
     def showErrorPopup(self, error_code):
         popup = ErrorPopup(error_code, self)

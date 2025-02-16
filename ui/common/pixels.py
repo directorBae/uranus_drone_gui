@@ -76,6 +76,29 @@ class ColorGrid(QWidget):
         self.current_frame_index = (self.current_frame_index + 1) % len(self.frames)
         self.updateGrid()
 
+class MultiColorGrid(QWidget):
+    def __init__(self, frames, width, height):
+        super().__init__()
+        self.frames = frames
+        self.width = width
+        self.height = height
+        self.initUI()
+
+    def initUI(self):
+        self.grid = QGridLayout()
+        self.grid.setSpacing(10)
+        self.setLayout(self.grid)
+        self.populateGrids()
+        self.setGeometry(100, 100, 800, 800)
+        self.setWindowTitle('Multi Color Grid')
+        self.show()
+
+    def populateGrids(self):
+        for i in range(self.height):
+            for j in range(self.width):
+                color_grid = ColorGrid(self.frames)
+                self.grid.addWidget(color_grid, i, j)
+
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     
@@ -84,6 +107,6 @@ if __name__ == '__main__':
         np.random.randint(0, 256, (4, 4, 3), dtype=np.uint8) for _ in range(10)
     ]
     
-    ex = ColorGrid(frames)
+    ex = MultiColorGrid(frames, 2, 2)
     
     sys.exit(app.exec_())
