@@ -5,7 +5,7 @@ from PyQt5.QtCore import Qt, QTimer
 import numpy as np
 
 class ColorCircle(QWidget):
-    def __init__(self, r=155, g=155, b=155, diameter=20):
+    def __init__(self, r=155, g=155, b=155, diameter=10):
         super().__init__()
         self.r = r
         self.g = g
@@ -14,9 +14,7 @@ class ColorCircle(QWidget):
         self.initUI()
 
     def initUI(self):
-        self.setGeometry(100, 100, 200, 200)
-        self.setWindowTitle('Color Circle')
-        # self.show()  # 이 줄을 제거하여 창이 여러 개 생기는 문제를 해결
+        pass
 
     def paintEvent(self, event):
         qp = QPainter()
@@ -28,7 +26,7 @@ class ColorCircle(QWidget):
         color = QColor(self.r, self.g, self.b)
         qp.setBrush(color)
         qp.setPen(Qt.NoPen)
-        qp.drawEllipse(10, 10, self.diameter, self.diameter)
+        qp.drawEllipse(5, 5, self.diameter, self.diameter)
 
     def setColor(self, r, g, b):
         self.r = r
@@ -50,10 +48,9 @@ class ColorGrid(QWidget):
 
     def initUI(self):
         self.grid = QGridLayout()
-        self.grid.setSpacing(5)  # 그리드 간 간격을 좁힘
+        self.grid.setSpacing(1)  # 그리드 간 간격을 좁힘
         self.setLayout(self.grid)
         self.updateGrid()
-        self.setGeometry(100, 100, 400, 400)
         self.setWindowTitle('Color Grid')
         self.show()  # ColorGrid에서만 창을 표시
 
@@ -70,7 +67,7 @@ class ColorGrid(QWidget):
     def startTimer(self):
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.nextFrame)
-        self.timer.start(1000)  # 1초마다 프레임 변경
+        self.timer.start(100)  # 1초마다 프레임 변경
 
     def nextFrame(self):
         self.current_frame_index = (self.current_frame_index + 1) % len(self.frames)
@@ -86,10 +83,10 @@ class MultiColorGrid(QWidget):
 
     def initUI(self):
         self.grid = QGridLayout()
-        self.grid.setSpacing(10)
+        self.grid.setSpacing(1)
         self.setLayout(self.grid)
         self.populateGrids()
-        self.setGeometry(100, 100, 800, 800)
+        self.setGeometry(0, 0, 400 * self.width, 400 * self.height)
         self.setWindowTitle('Multi Color Grid')
         self.show()
 
@@ -107,6 +104,6 @@ if __name__ == '__main__':
         np.random.randint(0, 256, (4, 4, 3), dtype=np.uint8) for _ in range(10)
     ]
     
-    ex = MultiColorGrid(frames, 2, 2)
+    ex = MultiColorGrid(frames, 16, 9)
     
     sys.exit(app.exec_())

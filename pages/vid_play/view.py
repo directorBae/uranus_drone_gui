@@ -10,12 +10,7 @@ class VidPlayPage(QWidget):
         self.initUI()
 
     def initUI(self):
-        self.layout = QVBoxLayout()
-        
-        # 간단한 목업 텍스트 추가
-        self.label = QLabel('영상 재생 페이지', self)
-        self.layout.addWidget(self.label)
-        
+        self.layout = QVBoxLayout()        
         self.setLayout(self.layout)
 
     def updateMultiColorGrid(self):
@@ -37,8 +32,14 @@ class VidPlayPage(QWidget):
             
             # 픽셀을 곱해진 만큼 화면에 추가
             frames = [
-                np.random.randint(0, 256, (height, width, 3), dtype=np.uint8) for _ in range(10)
+                np.random.randint(0, 256, (4, 4, 3), dtype=np.uint8) for _ in range(10)
             ]
             
             self.multiColorGrid = MultiColorGrid(frames, width, height)
+            print('multicolorgrid created')
             self.layout.addWidget(self.multiColorGrid)
+            print('multicolorgrid added to layout')
+
+        else:
+            self.label2 = QLabel('영상을 변환하세요', self)
+            self.layout.addWidget(self.label2)

@@ -13,7 +13,7 @@ class MainWindow(QMainWindow):
 
     def initUI(self):
         self.setWindowTitle('Main Window')
-        self.setGeometry(100, 100, 800, 600)
+        self.setGeometry(100, 100, 1920, 1080)
         
         centralWidget = QWidget(self)
         self.setCentralWidget(centralWidget)
@@ -36,7 +36,6 @@ class MainWindow(QMainWindow):
         
         # 시그널 연결
         self.sidebar.page_changed.connect(self.change_page)
-        self.fileConvertPage.video_uploaded.connect(self.update_vid_play_page)
         self.fileConvertPage.video_converted.connect(self.update_vid_play_page)
 
     def change_page(self, page_name):
