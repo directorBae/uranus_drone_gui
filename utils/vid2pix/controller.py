@@ -25,4 +25,10 @@ class Vid2PixController:
             str(self.config["fps"])
         ]
         print("Running command:", " ".join(command))
-        subprocess.run(command)
+        try:           
+            result = subprocess.run(command, capture_output=True, text=True, check=True)
+            print("✅ 실행 성공!")
+            print("출력 결과:", result.stdout)  # 표준 출력
+        except subprocess.CalledProcessError as e:
+            print("❌ 실행 실패!")
+            print("오류 메시지:", e.stderr)
