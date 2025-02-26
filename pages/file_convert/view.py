@@ -170,11 +170,11 @@ class FileConvertPage(QWidget):
 
     def convertVideo(self):
         config = Vid2PixConfig(
-            filename=self.videoStore.get_video_file(),
-            unexpectednumber=0,
+            filename=self.videoStore.get_video_file().split('/')[-1],
+            unexpectednumber=16,
             drone_number=self.simplified_ratio[0] * self.videoStore.get_multiplier() * self.simplified_ratio[1] * self.videoStore.get_multiplier(),
             drone_type=self.droneTypeGroup.checkedButton().text(),
-            fps=self.videoStore.get_video_data()['fps']
+            fps=int(self.videoStore.get_video_data()['fps'])
         )
         print("변환합니다")
         # 실제로 영상을 픽셀로 변환하는 함수가 여기에 들어갈 예정입니다.
