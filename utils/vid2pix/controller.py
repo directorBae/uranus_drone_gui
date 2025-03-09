@@ -5,8 +5,8 @@ from typing import TypedDict
 
 class Vid2PixConfig(TypedDict):
     filename: str
-    unexpectednumber: int
-    drone_number: int
+    height: int
+    width: int
     drone_type: str
     fps: int
 
@@ -19,8 +19,8 @@ class Vid2PixController:
         command = [
             self.pathway,
             self.config["filename"],
-            str(self.config["unexpectednumber"]),
-            str(self.config["drone_number"]),
+            str(self.config["height"]),
+            str(self.config["width"]),
             self.config["drone_type"],
             str(self.config["fps"])
         ]

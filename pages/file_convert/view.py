@@ -6,6 +6,7 @@ from ui.common.popup import ErrorPopup
 from errors.errors import ErrorCodes
 from model.store import VideoStore
 import cv2
+import os
 import math
 from utils.vid2pix.controller import Vid2PixController, Vid2PixConfig
 
@@ -104,6 +105,7 @@ class FileConvertPage(QWidget):
         height = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
         frame_count = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
         fps = cap.get(cv2.CAP_PROP_FPS)
+        fps = math.ceil(fps)
         cap.release()
         
         ratio = width / height
@@ -171,8 +173,8 @@ class FileConvertPage(QWidget):
     def convertVideo(self):
         config = Vid2PixConfig(
             filename=self.videoStore.get_video_file().split('/')[-1],
-            unexpectednumber=16,
-            drone_number=self.simplified_ratio[0] * self.videoStore.get_multiplier() * self.simplified_ratio[1] * self.videoStore.get_multiplier(),
+            height=self.simplified_ratio[1] * self.videoStore.get_multiplier() * 4,
+            width=self.simplified_ratio[0] * self.videoStore.get_multiplier() * 4,
             drone_type=self.droneTypeGroup.checkedButton().text(),
             fps=int(self.videoStore.get_video_data()['fps'])
         )

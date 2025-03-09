@@ -1,5 +1,5 @@
 import sys
-from PyQt5.QtWidgets import QApplication, QWidget, QGridLayout
+from PyQt5.QtWidgets import QApplication, QWidget, QGridLayout, QProgressBar
 from PyQt5.QtGui import QPainter, QColor
 from PyQt5.QtCore import Qt, QTimer
 import numpy as np
@@ -39,9 +39,11 @@ class ColorCircle(QWidget):
         self.update()  # 재렌더링을 위해 update() 호출
 
 class ColorGrid(QWidget):
-    def __init__(self, frames):
+    def __init__(self, frames, fps, progressBar):
         super().__init__()
         self.frames = frames
+        self.fps = fps
+        self.progressBar = progressBar
         self.current_frame_index = 0
         self.initUI()
         self.startTimer()
@@ -57,28 +59,32 @@ class ColorGrid(QWidget):
     def updateGrid(self):
         for i in reversed(range(self.grid.count())): 
             self.grid.itemAt(i).widget().setParent(None)
-        rows, cols, _ = self.frames[self.current_frame_index].shape
+        rows, cols = self.frames[self.current_frame_index].shape[:2]
         for i in range(rows):
             for j in range(cols):
                 r, g, b = self.frames[self.current_frame_index][i, j]
                 circle = ColorCircle(r, g, b)
                 self.grid.addWidget(circle, i, j)
+        self.progressBar.setValue(self.current_frame_index + 1)
 
     def startTimer(self):
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.nextFrame)
-        self.timer.start(100)  # 1초마다 프레임 변경
+        self.timer.start(int(1000 / self.fps))  # FPS에 따라 프레임 간격 설정
 
     def nextFrame(self):
         self.current_frame_index = (self.current_frame_index + 1) % len(self.frames)
         self.updateGrid()
 
 class MultiColorGrid(QWidget):
-    def __init__(self, frames, width, height):
+    def __init__(self, frame_generators, width, height, fps, progressBar):
         super().__init__()
-        self.frames = frames
+        self.frame_generators = frame_generators
         self.width = width
         self.height = height
+        self.fps = fps
+        self.progressBar = progressBar
+        self.frames = []
         self.initUI()
 
     def initUI(self):
@@ -93,8 +99,12 @@ class MultiColorGrid(QWidget):
     def populateGrids(self):
         for i in range(self.height):
             for j in range(self.width):
-                color_grid = ColorGrid(self.frames)
+                frames = list(self.frame_generators[i * self.width + j])
+                self.frames.append(frames)
+                color_grid = ColorGrid(frames, self.fps, self.progressBar)
                 self.grid.addWidget(color_grid, i, j)
+        total_frames = len(self.frames[0])
+        self.progressBar.setMaximum(total_frames)
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
@@ -104,6 +114,6 @@ if __name__ == '__main__':
         np.random.randint(0, 256, (4, 4, 3), dtype=np.uint8) for _ in range(10)
     ]
     
-    ex = MultiColorGrid(frames, 16, 9)
+    ex = MultiColorGrid([iter(frames)] * 16 * 9, 16, 9, 24, QProgressBar())
     
     sys.exit(app.exec_())
