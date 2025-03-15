@@ -29,6 +29,7 @@ class DeviceListWidget(QWidget):
     def scanDevices(self):
         self.deviceList.clear()
         self.devices = []
+        self.scan_devices()
         self.getConnectedDevices()
         self.filter_PI()
         for ip, mac in self.devices:
@@ -65,7 +66,11 @@ class DeviceListWidget(QWidget):
         def check_and_store(ip_mac):
             ip, mac = ip_mac
             try:
-                response = requests.get(f"http://{ip}:8000/identify", timeout=2)
+                headers = {
+                    "User-Agent": "curl/7.68.0",
+                    "Connection": "close"
+                }
+                response = requests.get(f"http://{ip}:8000/identify", headers=headers, timeout=3)
                 print(ip, response.json())
                 if response.json().get("message") == "I am a Raspberry Pi!":
                     valid_devices.append((ip, mac))  # API 응답 성공 시만 추가

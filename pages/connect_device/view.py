@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QLabel, QScrollArea, QPushButton, QSlider
+from PyQt5.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QLabel, QScrollArea, QPushButton, QSlider, QListWidget
 from PyQt5.QtCore import Qt
 import requests
 from ui.common.device_lists import DeviceListWidget
@@ -42,11 +42,49 @@ class DeviceDetailWidget(QWidget):
         self.customLayout.addWidget(self.bSlider)
         mainLayout.addLayout(self.customLayout)
 
-        self.setLayout(mainLayout)
+        self.currentIP = None
+
+        # Create a file list widget inside a scroll area
+        self.fileListWidget = QListWidget(self)
+        self.fileListScroll = QScrollArea()
+        self.fileListScroll.setWidgetResizable(True)
+        self.fileListScroll.setWidget(self.fileListWidget)
+
+        # Add a refresh button
+        self.refreshFileListButton = QPushButton("파일 목록 갱신", self)
+
+        # Replace the original horizontal layout usage
+        layoutWrapper = QHBoxLayout()
+        layoutWrapper.addLayout(mainLayout)
+
+        # Create a vertical layout for the file list + refresh button
+        fileListLayout = QVBoxLayout()
+        fileListLayout.addWidget(self.fileListScroll)
+        fileListLayout.addWidget(self.refreshFileListButton)
+        layoutWrapper.addLayout(fileListLayout)
+        self.setLayout(layoutWrapper)
+
+        # Connect refresh button to a file list refresh method
+        self.refreshFileListButton.clicked.connect(self.refreshFileList)
 
     def updateDetail(self, device_info):
         self.pixelGrid.show()
         self.label.setText(f"선택된 디바이스: {device_info}")
+        self.currentIP = device_info.split(" - ")[0]
+
+    def fetchFileList(self, ip):
+        self.fileListWidget.clear()
+        try:
+            response = requests.get(f"http://{ip}:8000/files/list")
+            files = response.json().get("files list")
+            for filename in files:
+                self.fileListWidget.addItem(filename)
+        except Exception as e:
+            self.fileListWidget.addItem(f"Error: {e}")
+
+    def refreshFileList(self):
+        if self.currentIP:
+            self.fetchFileList(self.currentIP)
 
     def setUpSignals(self, ip):
         self.redButton.clicked.connect(lambda: self.sendColorRequest(ip, 255, 0, 0))
@@ -56,7 +94,11 @@ class DeviceDetailWidget(QWidget):
 
     def sendColorRequest(self, ip, r, g, b):
         try:
-            response = requests.get(f"http://{ip}:8000/files/list")
+            response = requests.post(f"http://{ip}:8001/set_rgb", json={
+                "r": r,
+                "g": g,
+                "b": b
+            })
             print(response.json())
         except Exception as e:
             print(f"Error calling API: {e}")
@@ -70,8 +112,9 @@ class DeviceDetailWidget(QWidget):
         return handler
 
 class ConnectDevicePage(QWidget):
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, videoStore=None):
         super().__init__(parent)
+        self.videoStore = videoStore
         self.initUI()
 
     def initUI(self):
@@ -96,4 +139,5 @@ class ConnectDevicePage(QWidget):
     def showDeviceDetail(self, item):
         ip_str = item.text().split(" - ")[0]  # Example: "192.168.1.10"
         self.detailWidget.updateDetail(item.text())
+        self.detailWidget.fetchFileList(ip_str)
         self.detailWidget.setUpSignals(ip_str)
