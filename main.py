@@ -3,6 +3,7 @@ from PyQt5.QtWidgets import QApplication, QMainWindow, QHBoxLayout, QWidget, QSt
 from ui.common.sidebar import Sidebar
 from pages.file_convert.view import FileConvertPage
 from pages.vid_play.view import VidPlayPage
+from pages.connect_device.view import ConnectDevicePage
 from model.store import VideoStore
 
 class MainWindow(QMainWindow):
@@ -25,9 +26,11 @@ class MainWindow(QMainWindow):
         
         self.fileConvertPage = FileConvertPage(self, self.videoStore)
         self.vidPlayPage = VidPlayPage(self, self.videoStore)
+        self.connectDevicePage = ConnectDevicePage(self)  # Initialize here
         
         self.stackedWidget.addWidget(self.fileConvertPage)
         self.stackedWidget.addWidget(self.vidPlayPage)
+        self.stackedWidget.addWidget(self.connectDevicePage)
         
         layout.addWidget(self.sidebar)
         layout.addWidget(self.stackedWidget)
@@ -43,6 +46,8 @@ class MainWindow(QMainWindow):
             self.stackedWidget.setCurrentWidget(self.fileConvertPage)
         elif page_name == 'vid_play':
             self.stackedWidget.setCurrentWidget(self.vidPlayPage)
+        elif page_name == 'connect_device':
+            self.stackedWidget.setCurrentWidget(self.connectDevicePage)
         # 다른 페이지 전환 로직 추가 가능
 
     def update_vid_play_page(self):

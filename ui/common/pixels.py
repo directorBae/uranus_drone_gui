@@ -65,7 +65,8 @@ class ColorGrid(QWidget):
                 r, g, b = self.frames[self.current_frame_index][i, j]
                 circle = ColorCircle(r, g, b)
                 self.grid.addWidget(circle, i, j)
-        self.progressBar.setValue(self.current_frame_index + 1)
+        if self.progressBar:
+            self.progressBar.setValue(self.current_frame_index + 1)
 
     def startTimer(self):
         self.timer = QTimer(self)
