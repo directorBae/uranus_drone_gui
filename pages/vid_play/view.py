@@ -4,6 +4,8 @@ from ui.common.pixels import MultiColorGrid
 from utils.vid2pix.bin_read import yield_frames
 import os
 
+URANUS_UR_16_SIZE = 4
+
 class VidPlayPage(QWidget):
     def __init__(self, parent=None, videoStore=None):
         super().__init__(parent)
@@ -34,13 +36,12 @@ class VidPlayPage(QWidget):
             self.pathname = os.path.join(os.path.dirname(__file__), f'../../src/bin/{self.filename}')
             self.binfile_name_list = []
             
-            for i in range(int(self.videoStore.get_video_data()['ratio'].split(':')[0])
-            * self.videoStore.get_video_data()['multiplier']
-            * int(self.videoStore.get_video_data()['ratio'].split(':')[1])
-                        ):
-                self.binfile_name_list.append(f'{self.pathname}/raspberry_{i}.bin')
+            for i in range(int(self.videoStore.get_video_data()['ratio'].split(':')[0]) // URANUS_UR_16_SIZE 
+                           * int(self.videoStore.get_video_data()['ratio'].split(':')[1]) // URANUS_UR_16_SIZE):
+                self.binfile_name_list.append(os.path.join(self.pathname , f'raspberry_{i}.bin') ) 
                 
             frame_generators = [yield_frames(filepath=binname) for binname in self.binfile_name_list]
+
 
         except Exception as e:
             print('Error:', e)
@@ -60,8 +61,6 @@ class VidPlayPage(QWidget):
         
         if ratio and multiplier:
             width, height = map(int, ratio.split(':'))
-            width *= multiplier
-            height *= multiplier
             
             # 픽셀을 곱해진 만큼 화면에 추가
             self.multiColorGrid = MultiColorGrid(frame_generators, width, height, fps, self.progressBar)

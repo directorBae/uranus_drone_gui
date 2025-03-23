@@ -4,6 +4,8 @@ from PyQt5.QtGui import QPainter, QColor
 from PyQt5.QtCore import Qt, QTimer
 import numpy as np
 
+URANUS_UR_16_SIZE = 4
+
 class ColorCircle(QWidget):
     def __init__(self, r=155, g=155, b=155, diameter=10):
         super().__init__()
@@ -98,12 +100,16 @@ class MultiColorGrid(QWidget):
         self.show()
 
     def populateGrids(self):
-        for i in range(self.height):
-            for j in range(self.width):
-                frames = list(self.frame_generators[i * self.width + j])
+        idx = 0 
+        print(self.height, self.width)
+        print(len(self.frame_generators))
+        for i in range(0, self.height, URANUS_UR_16_SIZE):
+            for j in range(0, self.width ,URANUS_UR_16_SIZE):
+                frames = list(self.frame_generators[idx])
                 self.frames.append(frames)
                 color_grid = ColorGrid(frames, self.fps, self.progressBar)
                 self.grid.addWidget(color_grid, i, j)
+                idx+= 1
         total_frames = len(self.frames[0])
         self.progressBar.setMaximum(total_frames)
 

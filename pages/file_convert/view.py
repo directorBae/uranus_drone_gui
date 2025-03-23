@@ -173,8 +173,8 @@ class FileConvertPage(QWidget):
     def convertVideo(self):
         config = Vid2PixConfig(
             filename=self.videoStore.get_video_file().split('/')[-1],
-            height=self.simplified_ratio[1] * self.videoStore.get_multiplier() * 4,
-            width=self.simplified_ratio[0] * self.videoStore.get_multiplier() * 4,
+            height=self.simplified_ratio[1] * self.videoStore.get_multiplier() ,
+            width=self.simplified_ratio[0] * self.videoStore.get_multiplier() ,
             drone_type=self.droneTypeGroup.checkedButton().text(),
             fps=int(self.videoStore.get_video_data()['fps'])
         )

@@ -15,7 +15,7 @@ class MainWindow(QMainWindow):
 
     def initUI(self):
         self.setWindowTitle('Main Window')
-        self.setGeometry(100, 100, 1920, 1080)
+        self.setGeometry(100, 100, 1080, 720)
         
         centralWidget = QWidget(self)
         self.setCentralWidget(centralWidget)

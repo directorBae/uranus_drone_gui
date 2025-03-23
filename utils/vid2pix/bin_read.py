@@ -8,17 +8,22 @@ dir_path = os.path.dirname(__file__)
 URANUS_UR_16_SIZE = 4
 
 def yield_frames(filepath, pixel_size=URANUS_UR_16_SIZE):
-    with open(filepath, mode='rb') as file:
-        data = file.read()
+    try:
+        with open(filepath, mode='rb') as file:
+            data = file.read()
 
-    frame_size = pixel_size * pixel_size * 3
-    total_frames = len(data) // frame_size
+        frame_size = pixel_size * pixel_size * 3
+        total_frames = len(data) // frame_size
 
-    for i in range(total_frames):
-        frame = data[i * frame_size : (i + 1) * frame_size]
-        frame_np = np.frombuffer(frame, dtype=np.uint8).reshape(pixel_size, pixel_size, 3)
-        frame_np = frame_np[:, :, [2,1,0]]  # BGR -> RGB 변환
-        yield frame_np
+        for i in range(total_frames):
+            frame = data[i * frame_size : (i + 1) * frame_size]
+            frame_np = np.frombuffer(frame, dtype=np.uint8).reshape(pixel_size, pixel_size, 3)
+            frame_np = frame_np[:, :, [2,1,0]]  # BGR -> RGB 변환
+            yield frame_np
+    except FileNotFoundError as e:
+        print(f"[ERROR] 파일을 찾을 수 없습니다: {filepath}")
+        return 
+
 
 if __name__ == '__main__':
     filepath = os.path.join(dir_path, '../../src/bin/KakaoTalk_20250223_110920955/raspberry_6.bin')
