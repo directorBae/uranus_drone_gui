@@ -3,6 +3,9 @@ from model.store import VideoStore
 from ui.common.pixels import MultiColorGrid
 from utils.vid2pix.bin_read import yield_frames
 import os
+from ui.common.popup import ErrorPopup
+from errors.errors import ErrorCodes
+from utils.error_log import log_error
 
 class VidPlayPage(QWidget):
     def __init__(self, parent=None, videoStore=None):
@@ -40,11 +43,21 @@ class VidPlayPage(QWidget):
                         ):
                 self.binfile_name_list.append(f'{self.pathname}/raspberry_{i}.bin')
                 
-            frame_generators = [yield_frames(filepath=binname) for binname in self.binfile_name_list]
+            frame_generators = [
+                generator for binname in self.binfile_name_list
+                if (generator := yield_frames(filepath=binname))
+            ]
+
+            if not frame_generators:  # 유효한 제너레이터가 없는 경우
+                raise FileNotFoundError("BIN 파일을 읽는 중 오류가 발생했습니다.")
 
         except Exception as e:
-            print('Error:', e)
+            error_message = str(e)
+            print('Error:', error_message)
+            log_error(error_message)  # 에러 로그 기록
+            ErrorPopup(ErrorCodes.FILE_NOT_FOUND, self, error_message).exec_()  # 에러 팝업 띄우기
             self.label.setText('영상 파일을 불러오는 중 오류가 발생했습니다.')
+            return
         
         if hasattr(self, 'multiColorGrid'):
             self.layout.removeWidget(self.multiColorGrid)
@@ -57,12 +70,17 @@ class VidPlayPage(QWidget):
         fps = video_data['fps']
 
         print('ratio:', ratio, 'multiplier:', multiplier)
-        
-        if ratio and multiplier:
-            width, height = map(int, ratio.split(':'))
-            width *= multiplier
-            height *= multiplier
-            
-            # 픽셀을 곱해진 만큼 화면에 추가
-            self.multiColorGrid = MultiColorGrid(frame_generators, width, height, fps, self.progressBar)
-            self.layout.addWidget(self.multiColorGrid)
+
+        try:        
+            if ratio and multiplier:  # 유효한 데이터가 있는 경우에만 실행
+                width, height = map(int, ratio.split(':'))
+                
+                # 픽셀을 곱해진 만큼 화면에 추가
+                self.multiColorGrid = MultiColorGrid(frame_generators, width, height, fps, self.progressBar)
+                self.layout.addWidget(self.multiColorGrid)
+
+        except Exception as e:
+            error_message = str(e)
+            print('Error:', error_message)
+            log_error(error_message)  # 에러 로그 기록
+            ErrorPopup(ErrorCodes.CUSTOM_ERROR, self, error_message).exec_()

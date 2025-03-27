@@ -1,6 +1,7 @@
 import numpy as np
 import cv2
 import os
+from utils.error_log import log_error
 
 # 파일 경로
 dir_path = os.path.dirname(__file__)

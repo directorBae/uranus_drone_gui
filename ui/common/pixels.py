@@ -3,6 +3,7 @@ from PyQt5.QtWidgets import QApplication, QWidget, QGridLayout, QProgressBar
 from PyQt5.QtGui import QPainter, QColor
 from PyQt5.QtCore import Qt, QTimer
 import numpy as np
+from utils.error_log import log_error
 
 class ColorCircle(QWidget):
     def __init__(self, r=155, g=155, b=155, diameter=10):
@@ -86,6 +87,13 @@ class MultiColorGrid(QWidget):
         self.fps = fps
         self.progressBar = progressBar
         self.frames = []
+
+        # frame_generators가 비어 있는 경우 초기화 중단
+        if not self.frame_generators:
+            print("[ERROR] 유효한 frame_generators가 없습니다.")
+            log_error("유효한 frame_generators가 없습니다.")
+            return
+
         self.initUI()
 
     def initUI(self):
